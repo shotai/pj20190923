@@ -13,8 +13,9 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             asin text UNIQUE,
             name text, 
-            sellerRating  float, 
-            offerPrice  float
+            sellerName text,
+            sellerRating  text, 
+            offerPrice  text
             )`,
         (err) => {
             if (err) {

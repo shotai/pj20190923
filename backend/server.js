@@ -6,23 +6,12 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const db = require('./db.js');
 const asinScraper = require('amazon-asin-scraper');
+const crawler = require('crawler');
 
 const API_PORT = 3001;
 const app = express();
 app.use(cors());
 const router = express.Router();
-
-// this is our MongoDB database
-// const dbRoute =
-  // 'mongodb://<your-db-username-here>:<your-db-password-here>@ds249583.mlab.com:49583/fullstack_app';
-
-// connects our back end code with the database
-// mongoose.connect(dbRoute, { useNewUrlParser: true });
-
-// db.once('open', () => console.log('connected to the database'));
-
-// checks if connection with the database is successful
-// db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // (optional) only made for logging and
 // bodyParser, parses the request body to be a readable json format
@@ -58,9 +47,8 @@ router.get('/items', (req, res) => {
 
 
 router.get("/item/:id", (req, res, next) => {
-    // var asins = req.params.id.split(",").map(function (val) {return "'" + val + "'"}).join(',');
     var sql = "select * from item where asin = ?"
-    console.log(sql)
+    console.log("pulling data from db.")
 
     var params = [req.params.id]
     db.all(sql, params, (err, row) => {
@@ -68,10 +56,32 @@ router.get("/item/:id", (req, res, next) => {
           res.status(400).json({"error":err.message});
           return;
         }
-        res.json({
-            "message":"success",
-            "data":row
-        })
+        if (row === undefined || row.length == 0) {
+          console.log("Cannot find in database, pulling from amazon website.")
+          var options = {
+            asin : req.params.id
+          };
+          asinScraper(options, (result)=>{
+            var insert = 'INSERT INTO item (asin, name, sellerName, sellerRating, offerPrice) VALUES (?,?,?,?,?)'
+            db.run(insert, [result.asin,result.sellerList[0].title, result.sellerList[0].sellerName, result.sellerList[0].sellerRating, result.sellerList[0].offerPrice])
+            res.json({
+                "message":"success",
+                "data":[{
+                    "asin":result.asin, 
+                    "name": result.sellerList[0].title, 
+                    "sellerName": result.sellerList[0].sellerName, 
+                    "sellerRating": result.sellerList[0].sellerRating,
+                    "offerPrice": result.sellerList[0].offerPrice
+                  }]
+            })
+          });
+        }
+        else {
+          res.json({
+              "message":"success",
+              "data":row
+          })
+        }
       });
 });
 
@@ -86,10 +96,35 @@ router.get("/new/:id", (req, res, next) => {
     asinScraper(options, (result)=>{
       console.log(result);
       res.json({
-        "message": "success"
+        "message": "success",
+        "data": result.sellerList[0]
       });
     });
 });
+
+
+
+router.get("/test/:id", (req, res, next) => {
+    var c = new crawler() 
+    c.direct({
+      uri: 'https://www.amazon.com/dp/'+ req.params.id,
+      skipEventRequest: false, // default to true, direct requests won't trigger Event:'request'
+      callback: function(error, response) {
+          if(error) {
+            console.log(error)
+          } else {
+            console.log(response)
+            var $ = response.$;
+            console.log($('price').text())
+            console.log(response.statusCode);
+          }
+          res.json({
+            "message": "success",
+          });
+      }
+  });
+});
+
 
 // append /api for our http requests
 app.use('/api', router);
