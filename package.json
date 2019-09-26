@@ -1,0 +1,23 @@
+{
+  "name": "pj20190923",
+  "version": "1.0.0",
+  "description": "## api/items ```json \t\t{ \t\t\tmessage: \"success\", \t\t\tdata: [ \t\t\t\t{ \t\t\t\t\tid: 1, \t\t\t\t\tasin: \"test1\", \t\t\t\t\tname: \"abc\", \t\t\t\t\tsellerRating: 4.5, \t\t\t\t\tofferPrice: 100 \t\t\t\t}, \t\t\t\t{ \t\t\t\t\tid: 2, \t\t\t\t\tasin: \"test2\", \t\t\t\t\tname: \"bcd\", \t\t\t\t\tsellerRating: 5, \t\t\t\t\tofferPrice: 20.9 \t\t\t\t} \t\t\t] \t\t} ```",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"cd backend && node server.js\" \"cd client && npm start\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shotai/pj20190923.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shotai/pj20190923/issues"
+  },
+  "homepage": "https://github.com/shotai/pj20190923#readme",
+  "dependencies": {
+    "concurrently": "^4.1.2"
+  }
+}
